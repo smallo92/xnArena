@@ -1,6 +1,6 @@
 **xnArena**
 
-Enterable Arena interior with custom interior inspired by Nascar. Also has functioning pitlanes. Entraces are inside and outside of the Maze Bank Arena. Check the video for the exact locations!
+Enterable Arena interior with custom interior inspired by Nascar. Also has a functioning pitlane. Entraces are inside and outside of the Maze Bank Arena. Check the video for the exact locations!
 
 **Installation**
 
