@@ -1,176 +1,9 @@
-RequestIpl("xs_arena_banners_ipl")
+RequestIpl("xs_arena_banners_ipl") -- Exterior banners on Arena
+RequestIpl("sp1_10_real_interior") -- Arena walkin interior
+
 local ArenaObject
 local RepairingVehicle = false
-
-function ArenaLoad()
-	RequestIpl("xs_arena_interior")
-	CreateModelHide(2800.957, -3930.407, 180.493, 50.0, "xs_x18intvip_vip_light_dummy", 0)
-	CreateModelHide(2799.999, -3915.813, 179.9695, 50.0, "xs_propintarena_structure_s_05b", 0)
-	for _, set in ipairs(Config.entitySets) do
-		EnableInteriorProp(Config.interiorID, set)
-	end
-	RefreshInterior(Config.interiorID)
-	local objectPlacement = GetOffsetFromInteriorInWorldCoords(Config.interiorID, -0.00115500, -115.81260000, 79.96947000)
-	ArenaObject = CreateObjectNoOffset("xs_propintarena_structure_s_05b", objectPlacement, 0, 1, 0)
-	SetEntityQuaternion(ArenaObject, 0.0, 0.0, 1.0, 0.0)
-    SetModelAsNoLongerNeeded("xs_propintarena_structure_s_05b")
-	TVLoad()
-end
-
-function VIPLoad()
-	RequestIpl("xs_arena_interior_vip")
-	RequestIpl("xs_arena_interior")
-	RemoveModelHide(2800.957, -3930.407, 180.493, 50.0, "xs_x18intvip_vip_light_dummy", 0)
-	CreateModelHide(2799.999, -3915.813, 179.9695, 50.0, "xs_propintarena_structure_s_05b", 0)
-	ArenaObject = CreateObjectNoOffset("prop_alien_egg_01", -100.0, -100.0 -100.0, 0, 1, 0)
-	for _, set in ipairs(Config.entitySets) do
-		EnableInteriorProp(Config.interiorID, set)
-	end
-	RefreshInterior(Config.interiorID)
-	TVLoad()
-    SetModelAsNoLongerNeeded("prop_alien_egg_01")
-end
-
-function TVLoad()
-	local tvModel = "xs_prop_arena_bigscreen_01"
-	local tvPos = vec3(2798.267, -3787.388, 151.996)
-	local tvEntity = GetClosestObjectOfType(tvPos, 0.05, tvModel, 0, 0, 0)
-	local handle = CreateNamedRenderTargetForModel("bigscreen_01", tvModel)
-	Citizen.CreateThread(function()
-		while true do
-			SetTextRenderId(handle)
-			SetUiLayer(4)
-			SetScriptGfxDrawBehindPausemenu(1)
-			DrawTvChannel(0.5, 0.5, 1.0, 1.0, 0.0, 255, 255, 255, 255)
-			SetTextRenderId(GetDefaultScriptRendertargetRenderId())
-			SetScriptGfxDrawBehindPausemenu(0)
-			Citizen.Wait(0)
-		end
-	end)
-	LoadTvChannelSequence(0, "PL_STD_CNT", 1)
-	SetTvAudioFrontend(1)
-	SetTvVolume(-100.0)
-	SetTvChannel(0)
-end
-
-function OnUnloadInterior()
-	DeleteEntity(ArenaObject)
-	RemoveIpl("xs_arena_interior_vip")
-	RemoveIpl("xs_arena_interior")
-	for _, set in ipairs(Config.entitySets) do
-		DisableInteriorProp(Config.interiorID, set)
-	end
-	RefreshInterior(Config.interiorID)
-end
-
-function EnterVIPBox()
-	PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true)
-	BeginTextCommandBusyString("FMMC_PLYLOAD")
-	EndTextCommandBusyString(4)
-	DoScreenFadeOut(1000)
-	Citizen.Wait(1000)
-		DeleteEntity(ArenaObject)
-		SetEntityCoords(PlayerPedId(), Config.vipPedLoc, false, false, false, false)
-		SetEntityHeading(PlayerPedId(), Config.vipPedHeading)
-		SetGameplayCamRelativeHeading(0.0)
-		VIPLoad()
-	Citizen.Wait(1000)
-	DoScreenFadeIn(2000)
-	Citizen.Wait(1000)
-	RemoveLoadingPrompt()
-end
-
-function EnterPitVeh()
-	PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true)
-	local ped = PlayerPedId()
-	local pedVeh = GetVehiclePedIsIn(PlayerPedId())
-	local vehSpawn = Config.vehSpawns[math.random(#Config.vehSpawns)]
-	BeginTextCommandBusyString("FMMC_PLYLOAD")
-	EndTextCommandBusyString(4)
-	DoScreenFadeOut(1000)
-	Citizen.Wait(1000)
-		SetEntityCoords(pedVeh, vehSpawn[1], false, false, false, false)
-		SetEntityHeading(pedVeh, vehSpawn[2])
-		SetGameplayCamRelativeHeading(0.0)
-		ArenaLoad()
-	Citizen.Wait(1000)
-	DoScreenFadeIn(2000)
-	Citizen.Wait(1000)
-	RemoveLoadingPrompt()
-end
-
-function EnterPitPed()
-	LoadInterior()
-	PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true)
-	BeginTextCommandBusyString("FMMC_PLYLOAD")
-	EndTextCommandBusyString(4)
-	DoScreenFadeOut(1000)
-	Citizen.Wait(1000)
-		SetEntityCoords(PlayerPedId(), Config.intPedLoc, false, false, false, false)
-		SetEntityHeading(PlayerPedId(), Config.intPedHeading)
-		SetGameplayCamRelativeHeading(0.0)
-		ArenaLoad()
-	Citizen.Wait(1000)
-	DoScreenFadeIn(2000)
-	Citizen.Wait(1000)
-	RemoveLoadingPrompt()
-end
-
-function ExitVIPBox()
-	PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true)
-	BeginTextCommandBusyString("FMMC_PLYLOAD")
-	EndTextCommandBusyString(4)
-	DoScreenFadeOut(1000)
-	Citizen.Wait(1000)
-		SetEntityCoords(PlayerPedId(), Config.arenaPedLoc, false, false, false, false)
-		SetEntityHeading(PlayerPedId(), Config.arenaPedHeading)
-		SetGameplayCamRelativeHeading(0.0)
-		OnUnloadInterior()
-	Citizen.Wait(1000)
-	DoScreenFadeIn(2000)
-	Citizen.Wait(1000)
-	RemoveLoadingPrompt()
-end
-
-function EnterPitfromVIPPed()
-	PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true)
-	BeginTextCommandBusyString("FMMC_PLYLOAD")
-	EndTextCommandBusyString(4)
-	DoScreenFadeOut(1000)
-	Citizen.Wait(1000)
-		OnUnloadInterior()
-		SetEntityCoords(PlayerPedId(), Config.intPedLoc, false, false, false, false)
-		SetEntityHeading(PlayerPedId(), Config.intPedHeading)
-		SetGameplayCamRelativeHeading(0.0)
-		ArenaLoad()
-	Citizen.Wait(1000)
-	DoScreenFadeIn(2000)
-	Citizen.Wait(1000)
-	RemoveLoadingPrompt()
-end
-
-function ExitArena()
-	PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true)
-	BeginTextCommandBusyString("FMMC_PLYLOAD")
-	EndTextCommandBusyString(4)
-	DoScreenFadeOut(1000)
-	Citizen.Wait(1000)
-		if IsPedInAnyVehicle(PlayerPedId(), true) then
-			SetEntityCoords(GetVehiclePedIsIn(PlayerPedId()), Config.vehPitEntry, false, false, false, false)
-			SetEntityHeading(GetVehiclePedIsIn(PlayerPedId()), 26.0)
-			SetGameplayCamRelativeHeading(0.0)
-			OnUnloadInterior()
-		else
-			SetEntityCoords(PlayerPedId(), Config.pedPitEntry, false, false, false, false)
-			SetEntityHeading(PlayerPedId(), 26.0)
-			SetGameplayCamRelativeHeading(0.0)
-			OnUnloadInterior()
-		end
-	Citizen.Wait(1000)
-	DoScreenFadeIn(2000)
-	Citizen.Wait(1000)
-	RemoveLoadingPrompt()
-end
+local handle = nil
 
 function xnNotification(msg)
 	SetNotificationTextEntry('STRING')
@@ -178,62 +11,54 @@ function xnNotification(msg)
 	DrawNotification(false, true)
 end
 
-function RepairVehicle()
-	PlaySoundFrontend(-1, "Timer_5s", "GTAO_FM_Events_Soundset", 1)
+function RepairVehicle(veh)
+	PlaySoundFrontend(-1, Config.repairSound.soundLib, Config.repairSound.soundFile, 1)
 	RepairingVehicle = true
-	xnNotification("Repair has started, please wait...")
+	xnNotification(Config.text.repairStarted)
 	SetTimeout(5000, function()
-		SetVehicleFixed(GetVehiclePedIsIn(PlayerPedId()))
-		SetVehicleDirtLevel(GetVehiclePedIsIn(PlayerPedId()), 0.0)
-		xnNotification("Repair Complete.")
+		SetVehicleFixed(veh)
+		SetVehicleDirtLevel(veh, 0.0)
+		xnNotification(Config.text.repairCompleted)
 		RepairingVehicle = false
 	end)
 end
 
-Citizen.CreateThread(function()
-	while RepairingVehicle do 
-		Citizen.Wait(0)
-		DisableControlAction(0, 75, true)
-		DisableControlAction(0, 71, true)
-		DisableControlAction(0, 72, true)
-		DisableControlAction(0, 86, true)
-	end
-end)
-
-Citizen.CreateThread(function()
-	local waitTime = 500
-	while true do
-		Citizen.Wait(waitTime)
-		local ped = PlayerPedId()
-		local pedCoords = GetEntityCoords(ped)
-		for _, marker in pairs(Config.markers) do
-			if #(pedCoords - marker[2]) < marker[4] then
-				waitTime = 1
-				DrawMarker(marker[1], marker[2], 0.0, 0.0, 0.0, 0, 0.0, 0.0, marker[3], Config.markerColour.r, Config.markerColour.g, Config.markerColour.b, Config.markerColour.a, marker[5], true)
-			else
-				waitTime = 500
-			end
+CreateThread(function()
+	while true do 
+		Wait(0)
+		if RepairingVehicle then
+			DisableControlAction(0, 75, true)
+			DisableControlAction(0, 71, true)
+			DisableControlAction(0, 72, true)
+			DisableControlAction(0, 86, true)
 		end
 	end
 end)
 
-Citizen.CreateThread(function()
-	local waitTime = 500
+local waitTime = 500
+CreateThread(function()
 	while true do
-		Citizen.Wait(waitTime)
+		Wait(waitTime)
 		local ped = PlayerPedId()
 		local pedCoords = GetEntityCoords(ped)
-		if #(pedCoords - Config.vehPitEntry) < 3.0 then
-			waitTime = 1
-			if IsPedInAnyVehicle(ped, true) then
-				form = setupScaleform("instructional_buttons", "Enter Pit Lanes", Config.interactKey)
-				DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
-				if IsControlJustReleased(2, Config.interactKey) then
-					EnterPitVeh()
+		for _, oldMarker in pairs(Config.teleports) do
+			for _, multiMarkers in pairs(oldMarker.markerCoords) do
+				if #(pedCoords - multiMarkers) < oldMarker.markerDrawDistance then
+					Config.currentMarkers[multiMarkers] = {
+						mType = oldMarker.markerType, 
+						mCoords = multiMarkers, 
+						mScale = oldMarker.markerScale, 
+						mBob = oldMarker.markerBobUpAndDown
+					}
+				else
+					Config.currentMarkers[multiMarkers] = nil
 				end
-			else
-				form = setupScaleform("instructional_buttons", "You must be in a vehicle to enter the pit lanes from here. Try the stairs next to you.")
-				DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
+			end
+		end
+		if next(Config.currentMarkers) then
+			waitTime = 1
+			for _, current in pairs(Config.currentMarkers) do
+				DrawMarker(current.mType, current.mCoords, 0.0, 0.0, 0.0, 0, 0.0, 0.0, current.mScale, Config.markerColour.r, Config.markerColour.g, Config.markerColour.b, Config.markerColour.a, current.mBob, true)
 			end
 		else
 			waitTime = 500
@@ -241,168 +66,154 @@ Citizen.CreateThread(function()
 	end
 end)
 
-Citizen.CreateThread(function()
-	local waitTime = 500
+CreateThread(function()
 	while true do
-		Citizen.Wait(waitTime)
+		Wait(waitTime)
 		local ped = PlayerPedId()
 		local pedCoords = GetEntityCoords(ped)
-		if #(pedCoords - Config.vipPedtoPitLoc) < 1.0 then
-			waitTime = 1
-			if not IsPedInAnyVehicle(ped, true) then
-				form = setupScaleform("instructional_buttons", "Enter Pit Lanes", Config.interactKey)
-				DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
-				if IsControlJustReleased(2, Config.interactKey) then
-					EnterPitfromVIPPed()
+		for _, marker in pairs(Config.teleports) do
+			for _, multiMarkers in pairs(marker.markerCoords) do
+				if #(pedCoords - multiMarkers) < marker.markerScale.x / 2 then
+					local veh = IsPedInAnyVehicle(ped)
+					if not marker.allowVehicle and veh then
+						form = setupScaleform("instructional_buttons", Config.text.noVehicle)
+						DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
+					else
+						form = setupScaleform("instructional_buttons", marker.markerText, Config.interactKey)
+						DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
+						if IsControlJustReleased(0, Config.interactKey) then
+							local spawnPoint = marker.destinationCoords[1]
+							local tpEntity = ped
+							if #marker.destinationCoords > 1 then
+								spawnPoint = marker.destinationCoords[math.random(#marker.destinationCoords)]
+							end
+							if veh then
+								tpEntity = GetVehiclePedIsIn(ped)
+							end
+							StartTeleport(spawnPoint, tpEntity, marker.imaps, marker.destination)
+						end
+					end
 				end
-			else
-				form = setupScaleform("instructional_buttons", "How the hell did you get a vehicle here?.")
-				DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
 			end
-		else
-			waitTime = 500
 		end
 	end
 end)
 
-Citizen.CreateThread(function()
-	local waitTime = 500
+CreateThread(function()
+	local newWait = 500
 	while true do
-		Citizen.Wait(waitTime)
-		local ped = PlayerPedId()
-		local pedCoords = GetEntityCoords(ped)
-		if #(pedCoords - Config.pedPitEntry) < 1.0 then
-			waitTime = 1
-			if not IsPedInAnyVehicle(ped, true) then
-				form = setupScaleform("instructional_buttons", "Enter Pit Lanes", Config.interactKey)
-				DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
-				if IsControlJustReleased(2, Config.interactKey) then
-					EnterPitPed()
-				end
-			else
-				form = setupScaleform("instructional_buttons", "You must be on foot to enter the pit lanes from here. Try the garage down the stairs.")
-				DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
-			end
-		else
-			waitTime = 500
-		end
-	end
-end)
-
-Citizen.CreateThread(function()
-	local waitTime = 500
-	while true do
-		Citizen.Wait(waitTime)
-		local ped = PlayerPedId()
-		local pedCoords = GetEntityCoords(ped)
-		if #(pedCoords - Config.arenaPedLoc) < 1.0 then
-			waitTime = 1
-			if not IsPedInAnyVehicle(ped, true) then
-				form = setupScaleform("instructional_buttons", "Enter the VIP box", Config.interactKey)
-				DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
-				if IsControlJustReleased(2, Config.interactKey) then
-					EnterVIPBox()
-				end
-			else
-				form = setupScaleform("instructional_buttons", "How the hell did you get a vehicle in here?")
-				DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
-			end
-		else
-			waitTime = 500
-		end
-	end
-end)
-
-Citizen.CreateThread(function()
-	local waitTime = 500
-	while true do
-		Citizen.Wait(waitTime)
-		local ped = PlayerPedId()
-		local pedCoords = GetEntityCoords(ped)
-		if #(pedCoords - Config.vipPedLoc) < 1.0 then
-			waitTime = 1
-			if not IsPedInAnyVehicle(ped, true) then
-				form = setupScaleform("instructional_buttons", "Exit the VIP box", Config.interactKey)
-				DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
-				if IsControlJustReleased(2, Config.interactKey) then
-					ExitVIPBox()
-				end
-			else
-				form = setupScaleform("instructional_buttons", "How the hell did you get a vehicle in here?")
-				DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
-			end
-		else
-			waitTime = 500
-		end
-	end
-end)
-
-Citizen.CreateThread(function()
-	local waitTime = 500
-	while true do
-		Citizen.Wait(waitTime)
-		local ped = PlayerPedId()
-		local pedCoords = GetEntityCoords(ped)
-		if GetInteriorFromEntity(ped) == Config.interiorID then
-			waitTime = 1
-			if IsPedInAnyVehicle(ped, true) then
-				local pedVeh = GetVehiclePedIsIn(ped, false)
-				if #(pedCoords - Config.repairLocation) < 75.0 then
-					if IsEntityInArea(pedVeh, 2750.745, -3696.981, 138.5, 2849.704, -3707.112, 142.0, 0, 0, 0) then
-						if IsPedInAnyVehicle(ped, true) then
-							if GetEntityHealth(pedVeh) ~= GetEntityMaxHealth(pedVeh) then
-								if GetEntitySpeed(pedVeh) == 0.0 then
-									if not RepairingVehicle then
-										form = setupScaleform("instructional_buttons", "Repair Vehicle", Config.interactKey)
-										DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
-										if IsControlJustReleased(2, Config.interactKey) then
-											RepairVehicle()
-										end
-									end
-								else
-									form = setupScaleform("instructional_buttons", "You must be at a complete stop to repair your vehicle.")
+		Citizen.Wait(newWait)
+		if DoesEntityExist(ArenaObject) then
+			local ped = PlayerPedId()
+			local pedCoords = GetEntityCoords(ped)
+			if GetInteriorFromEntity(ped) == Config.interiorID and IsPedInAnyVehicle(ped) then
+				newWait = 1
+				local veh = GetVehiclePedIsIn(ped)
+				if #(Config.repairLocation - pedCoords) < 75.0 then
+					if IsEntityInArea(veh, Config.repairBox.pointA, Config.repairBox.pointB, 0, 0, 0) then
+						if GetEntityHealth(veh) ~= GetEntityMaxHealth(veh) then
+							if GetEntitySpeed(veh) == 0.0 then
+								if not RepairingVehicle then
+									form = setupScaleform("instructional_buttons", Config.text.repairVehicle, Config.interactKey)
 									DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
+									if IsControlJustReleased(0, Config.interactKey) then
+										RepairVehicle(veh)
+									end
 								end
 							else
-								form = setupScaleform("instructional_buttons", "Your vehicle already is already at full health.")
+								form = setupScaleform("instructional_buttons", Config.text.vehicleNotStopped)
 								DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
 							end
+						else
+							form = setupScaleform("instructional_buttons", Config.text.vehicleFullHealth)
+							DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
 						end
 					end
 				end
-			end
-			for k,v in pairs(Config.vehSpawns) do
-				if #(pedCoords - v[1]) < 50.0 then
-					local coords = v[1]
-					DrawMarker(1, coords.x, coords.y, coords.z - 1.0, 0.0, 0.0, 0.0, 0, 0.0, 0.0, 5.0, 5.0, 3.0, Config.markerColour.r, Config.markerColour.g, Config.markerColour.b, Config.markerColour.a, false, false, 2, false, false, false, false)
-					if #(pedCoords - coords) < 3.0 then
-						form = setupScaleform("instructional_buttons", "Exit Arena", Config.interactKey)
-						DrawScaleformMovieFullscreen(form, 255, 255, 255, 255, 0)
-						if IsControlJustReleased(2, Config.interactKey) then
-							ExitArena()
-						end
-					end
-				end
+			else
+				newWait = 500
 			end
 		else
-			waitTime = 500
+			local ped = PlayerPedId()
+			if not IsPedInAnyVehicle(ped, false) then
+				if #(GetEntityCoords(ped) - Config.repairLocation) < 300.0 then
+					local tpItem = Config.teleports.pedPitEntry
+					StartTeleport(tpItem.destinationCoords[1], ped, tpItem.imaps, tpItem.destination)
+				end
+			end
 		end
 	end
 end)
 
-Citizen.CreateThread(function()
-	while true do 
-		Citizen.Wait(0)
-		if not IsPedInAnyVehicle(PlayerPedId(), false) then
-			local ped = PlayerPedId()
-			if #(GetEntityCoords(ped) - Config.interiorCentre) < 300.0 then
-				if not DoesEntityExist(ArenaObject) then
-					EnterPitPed()
-				end
+function StartTeleport(coords, entity, imaps, destination)
+	PlaySoundFrontend(-1, Config.selectSound.soundLib, Config.selectSound.soundFile, true)
+	BeginTextCommandBusyString("FMMC_PLYLOAD")
+	EndTextCommandBusyString(4)
+	DoScreenFadeOut(1000)
+	Wait(1000)
+		for imap, request in pairs(imaps) do
+			if request then
+				RequestIpl(imap)
+			else
+				RemoveIpl(imap)
 			end
 		end
+		SetEntityCoords(entity, coords.x, coords.y, coords.z, false, false, false, false)
+		SetEntityHeading(entity, coords.w)
+		SetGameplayCamRelativeHeading(0.0)
+		if destination == "arena" then
+			TvLoad()
+			CreateModelHide(Config.lightDummyLoc, 50.0, Config.lightDummyModel, 0)
+			CreateModelHide(Config.structureLoc, 50.0, Config.structureModel, 0)
+			local objectPlacement = GetOffsetFromInteriorInWorldCoords(Config.interiorID, Config.interiorOffset)
+			ArenaObject = CreateObjectNoOffset(Config.structureModel, objectPlacement, false, false, false)
+			SetEntityQuaternion(ArenaObject, Config.arenaObjectRotation)
+		elseif destination == "vip" then
+			TvLoad()
+			RemoveModelHide(Config.lightDummyLoc, 50.0, Config.lightDummyModel, 0)
+			CreateModelHide(Config.structureLoc, 50.0, Config.structureModel, 0)
+			ArenaObject = CreateObjectNoOffset(Config.dummyModel, Config.dummyLoc, false, false, false)
+		elseif destination == "outside" then
+			CreateModelHide(Config.lightDummyLoc, 50.0, Config.lightDummyModel, 0)
+			CreateModelHide(Config.structureLoc, 50.0, Config.structureModel, 0)
+			DeleteEntity(ArenaObject)
+			SetTvChannel(-1)
+			ClearTvChannelPlaylist(0)
+			SetTvAudioFrontend(0)
+			handle = nil
+			ArenaObject = nil
+			for _, set in ipairs(Config.entitySets) do
+				DeactivateInteriorEntitySet(Config.interiorID, set)
+			end
+			RefreshInterior(Config.interiorID)
+		end
+	Wait(1000)
+	RemoveLoadingPrompt()
+	DoScreenFadeIn(2000)
+end
+
+function TvLoad()
+	handle = CreateNamedRenderTargetForModel("bigscreen_01", Config.tvModel)
+	CreateThread(function()
+		while true do
+			SetTextRenderId(handle)
+			SetUiLayer(4)
+			SetScriptGfxDrawBehindPausemenu(1)
+			DrawTvChannel(0.5, 0.5, 1.0, 1.0, 0.0, 255, 255, 255, 255)
+			SetTextRenderId(GetDefaultScriptRendertargetRenderId())
+			SetScriptGfxDrawBehindPausemenu(0)
+			Wait(0)
+		end
+	end)
+	SetTvChannelPlaylist(0, Config.tvChannel, 1)
+	SetTvAudioFrontend(1)
+	SetTvVolume(Config.tvVolume) -- Muted
+	SetTvChannel(0)
+	for _, set in ipairs(Config.entitySets) do
+		EnableInteriorProp(Config.interiorID, set)
 	end
-end)
+	RefreshInterior(Config.interiorID)
+end
 
 function ButtonMessage(text)
     BeginTextCommandScaleformString("STRING")
@@ -417,7 +228,7 @@ end
 function setupScaleform(scaleform, itemString, button)
     local scaleform = RequestScaleformMovie(scaleform)
     while not HasScaleformMovieLoaded(scaleform) do
-        Citizen.Wait(0)
+        Wait(0)
     end
     PushScaleformMovieFunction(scaleform, "CLEAR_ALL")
     PopScaleformMovieFunctionVoid()
@@ -440,12 +251,6 @@ function setupScaleform(scaleform, itemString, button)
     PushScaleformMovieFunctionParameterInt(80)
     PopScaleformMovieFunctionVoid()
     return scaleform
-end
-
-function ShowNotification(msg)
-	SetNotificationTextEntry('STRING')
-	AddTextComponentString(msg)
-	DrawNotification(false, true)
 end
 
 function CreateNamedRenderTargetForModel(name, model)
